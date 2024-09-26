@@ -7,9 +7,22 @@ const app = express();
 //     res.send('the test page');
 // })
 
-app.get('/test',(req, res) => {
+//using patterns in routes, here es is optional, we can also write regax in the route
+// app.get('/t(es)?t',(req, res) => {
+//     res.send({firstName:'Sivanshu', lastName:'Singh', profession:'engineer'});
+// });
+
+app.get('/test/:userID/:name',(req, res) => {
+    console.log(req.params);
+    //{ userID: '111', name: 'sivanshu' }
     res.send({firstName:'Sivanshu', lastName:'Singh', profession:'engineer'});
 });
+
+//reading request params
+// app.get('/test',(req, res) => {
+//     console.log(req.query);
+//     res.send({firstName:'Sivanshu', lastName:'Singh', profession:'engineer'});
+// });
 
 app.post('/test',(req, res) => {
     res.send('data saved successfully');
