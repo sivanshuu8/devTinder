@@ -4,20 +4,85 @@ const User = require('./Config/models/user')
 
 const app = express();
 
-app.post('/signup', async (req, res) => {
-    const user = new User({
-        firstName: 'Sachin',
-        lastName: 'T',
-        email: 'st@gmail.com',
-        age: 45,
-        password:'password2',
-    })
+app.use(express.json());
 
-    try {
-        await user.save()
-        res.send('User Added succesfully');
+app.post('/signup', async (req, res) => {
+    console.log(req.body);
+    // const user = new User({
+    //     firstName: 'Sachin',
+    //     lastName: 'T',
+    //     email: 'st@gmail.com',
+    //     age: 45,
+    //     password:'password2',
+    // })
+
+    // try {
+    //     await user.save()
+    //     res.send('User Added succesfully');
+    // } catch (err) {
+    //     res.status(400).send('Error saving user:'+ err.message)
+    // }
+    const user = new User(req.body);
+    try{
+        await user.save();  // to save user data   
+        res.send('User Added successfully');
     } catch (err) {
-        res.status(400).send('Error saving user:'+ err.message)
+        res.status(400).send('Error saving user: '+ err.message )
+    }
+});
+
+app.get('/user', async (req, res) => {
+    const userEmail = req.body.emailId;
+
+    try{
+        const users = await User.find({ emailId: userEmail });
+        if(users.length === 0){
+            res.status(404).send('user not found');
+        } else {
+            res.send(users);
+        }
+        
+    } catch(err) {
+        res.status(400).send('Something went wrong' + err.message);
+    }
+});
+
+app.get('/feeds', async (req, res) => {
+    try {
+        const users = await User.find({});
+        res.send(users);
+    } catch (err) {
+        res.status(400).send('Something went wrong');
+    }
+});
+
+app.delete('/user', async (req, res) => {
+    const userId = req.body.userId;
+    try{
+        console.log(userId);
+        const a = await User.findByIdAndDelete(userId);
+        console.log(a);
+        res.send('User Deleted Successfully');
+    } catch(err) {
+        res.send('Error deleting user');
+    }
+});
+
+app.patch('/user', async (req, res) => {
+    const userId = req.body.userId;
+    const data = req.body;
+    try{
+         const allowedData = ["userId", "age", "skills", "gender", "emailId", "password", "lastName"];
+         const isDataValid =  Object.keys(data).every((el) => {
+            return allowedData.includes(el);
+         })
+         if(!isDataValid){
+            res.status(400).send('invalid fields!');
+         }
+        await User.findByIdAndUpdate({ _id: userId}, data, { runValidators: true });
+        res.status(200).send('User updated successfully');
+    } catch(err){
+        res.status(400).send('User cannot be updated', err.message)
     }
 })
 
