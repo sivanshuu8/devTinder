@@ -1,6 +1,8 @@
 const express = require('express');
 const {connectDB} = require('./Config/database');
-const User = require('./Config/models/user')
+const User = require('./Config/models/user');
+const { validateSignUp } = require('./Utils/validate')
+const bcrypt = require('bcrypt');
 
 const app = express();
 
@@ -22,14 +24,43 @@ app.post('/signup', async (req, res) => {
     // } catch (err) {
     //     res.status(400).send('Error saving user:'+ err.message)
     // }
-    const user = new User(req.body);
+    // const user = new User(req.body);
     try{
+        validateSignUp(req.body);
+        const {firstName, lastName, emailId, password } = req.body;
+        const passwordHash = await bcrypt.hash(password, 10);
+        const user = new User({
+            firstName,
+            lastName,
+            emailId,
+            password: passwordHash,
+        })
+
         await user.save();  // to save user data   
         res.send('User Added successfully');
     } catch (err) {
         res.status(400).send('Error saving user: '+ err.message )
     }
 });
+
+app.post('/login', async (req, res) => {
+
+    try{
+        const { emailId, password } = req.body;
+        const user = await User.findOne({ emailId: emailId })
+        if(!user){
+            throw new Error('Email is Invalid')
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if(isPasswordValid){
+            res.status(400).send('Login Successful');
+        } else {
+            throw new Error('Invalid Password')
+        }
+    } catch (err){
+        res.status(400).send('Error : ' + err.message)
+    }
+})
 
 app.get('/user', async (req, res) => {
     const userEmail = req.body.emailId;
