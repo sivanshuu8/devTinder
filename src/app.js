@@ -79,6 +79,9 @@ app.patch('/user', async (req, res) => {
          if(!isDataValid){
             res.status(400).send('invalid fields!');
          }
+         if(data.skills.length >= 10){
+            res.status(200).send('Skills excedding limits');
+         }
         await User.findByIdAndUpdate({ _id: userId}, data, { runValidators: true });
         res.status(200).send('User updated successfully');
     } catch(err){
