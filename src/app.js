@@ -1,12 +1,16 @@
 const express = require('express');
 const {connectDB} = require('./Config/database');
 const User = require('./Config/models/user');
-const { validateSignUp } = require('./Utils/validate')
+const { validateSignUp } = require('./Utils/validate');
 const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+const { authUser } = require('./Middlewares/auth');
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post('/signup', async (req, res) => {
     console.log(req.body);
@@ -53,6 +57,9 @@ app.post('/login', async (req, res) => {
         }
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if(isPasswordValid){
+            console.log(user._id)
+            const token = jwt.sign({ userId: user._id }, 'MyApp@123', { expiresIn: '2d'})
+            res.cookie('token', token, { expires: new Date(Date.now() + 8 * 3600000) });
             res.status(400).send('Login Successful');
         } else {
             throw new Error('Invalid Password')
@@ -77,6 +84,16 @@ app.get('/user', async (req, res) => {
         res.status(400).send('Something went wrong' + err.message);
     }
 });
+
+app.get('/profile', authUser, async(req, res) => {
+    try{
+        const user = req.user;
+        if(!user) throw new Error('User Not Found')
+        res.status(200).send(user);
+    } catch (err) {
+        console.log(err);
+    }
+})
 
 app.get('/feeds', async (req, res) => {
     try {
