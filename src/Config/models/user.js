@@ -53,7 +53,7 @@ const userSchema = mongoose.Schema({
 
  userSchema.methods.getJWT = async function () {
     const user = this;
-    const token = await jwt.sign({ userId: user._id }, 'MyApp@123', { expiresIn: '2d'});
+    const token = jwt.sign({ userId: user._id }, 'MyApp@123', { expiresIn: '2d'});
     return token;
 }
 
@@ -63,6 +63,7 @@ userSchema.methods.validatePassword = async function (password) {
     return isPasswordValid;
 }
 
+userSchema .index({ firstName: 1, lastName: 1, emailId: 1}); // 1 is ascending, -1 means descending
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;

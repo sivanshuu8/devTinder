@@ -5,10 +5,12 @@ const requrestConnectionSchema = new mongoose.Schema({
     fromUserId:{
         type: mongoose.Schema.Types.ObjectId,
         required: true,
+        ref: 'User',
     },
     toUserId:{
         type: mongoose.Schema.Types.ObjectId,
         required: true,
+        ref: 'User',
     },
     status: {
         type: String,
@@ -22,7 +24,7 @@ const requrestConnectionSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-requrestConnectionSchema.pre('save', function () {
+requrestConnectionSchema.pre('save', function (next) {
     const requrestConnection = this;
     // Check if the fromUserId is same as touserId
     if(requrestConnection.fromUserId.equals(requrestConnection.toUserId)){
@@ -31,6 +33,7 @@ requrestConnectionSchema.pre('save', function () {
     next();
 })
 
+requrestConnectionSchema.index({ fromUserId: 1, toUserId: 1}); // 1 is ascending, -1 means descending
 const RequestConnectionModal = new mongoose.model('requrestConnectionSchema', requrestConnectionSchema);
 
 module.exports = {
